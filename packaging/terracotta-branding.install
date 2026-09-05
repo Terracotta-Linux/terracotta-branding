@@ -1,0 +1,17 @@
+post_install() {
+	# /etc/os-release is normally a symlink to /usr/lib/os-release owned by
+	# the `filesystem` package, so pacman can't let us own that path
+	# directly without a file conflict. Overwrite it here instead, after
+	# the reference copy is already in place under /usr/share.
+	install -Dm644 /usr/share/terracotta-branding/brand/os-release /usr/lib/os-release
+	ln -sf ../usr/lib/os-release /etc/os-release
+}
+
+post_upgrade() {
+	post_install
+}
+
+post_remove() {
+	echo "Note: /etc/os-release and /usr/lib/os-release were left in place." \
+		"Restore them from the filesystem package if needed."
+}

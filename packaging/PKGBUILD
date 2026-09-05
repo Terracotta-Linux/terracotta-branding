@@ -14,6 +14,7 @@ url="https://github.com/Terracotta-Linux/terracotta-branding"
 license=('custom')
 source=("$pkgname-$pkgver::git+https://github.com/Terracotta-Linux/terracotta-branding.git#tag=v$pkgver")
 sha256sums=('SKIP')
+install=terracotta-branding.install
 
 package() {
 	cd "$srcdir/$pkgname-$pkgver"
@@ -22,6 +23,9 @@ package() {
 	install -Dm644 logo/terracotta-mono.svg "$pkgdir/usr/share/terracotta-branding/logo/terracotta-mono.svg"
 	install -Dm644 logo/terracotta-badge.svg "$pkgdir/usr/share/terracotta-branding/logo/terracotta-badge.svg"
 	install -Dm644 brand/palette.md "$pkgdir/usr/share/terracotta-branding/brand/palette.md"
+	# Reference copy only — terracotta-branding.install's post_install()
+	# copies this over /usr/lib/os-release, since pacman can't let this
+	# package own that path directly (it's owned by `filesystem`).
 	install -Dm644 brand/os-release "$pkgdir/usr/share/terracotta-branding/brand/os-release"
 	install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
 
