@@ -33,13 +33,20 @@ jobs:
         run: |
           su builder -c "cd '$GITHUB_WORKSPACE/packaging' && makepkg --syncdeps --noconfirm --skippgpcheck --nocheck"
 
-      - name: Compute checksum
+      - name: Rename package for stable release URL
         id: pkg
         run: |
           cd packaging
-          pkgfile=$(ls -- *.pkg.tar.zst | head -n1)
-          sha256sum "$pkgfile" > "$pkgfile.sha256"
+          built=$(ls -- *.pkg.tar.zst | head -n1)
+          arch=$(. ./PKGBUILD; echo "${arch[0]}")
+          pkgfile="terracotta-branding-$arch.pkg.tar.zst"
+          mv -- "$built" "$pkgfile"
           echo "pkgfile=$pkgfile" >> "$GITHUB_OUTPUT"
+
+      - name: Compute checksum
+        run: |
+          cd packaging
+          sha256sum "${{ steps.pkg.outputs.pkgfile }}" > "${{ steps.pkg.outputs.pkgfile }}.sha256"
 
       - name: Upload to GitHub release
         uses: softprops/action-gh-release@v2
