@@ -1,0 +1,32 @@
+# Maintainer: Abdullah AL-Swedi
+#
+# Standalone: this file works on its own, fetching the source from git
+# rather than assuming it is sitting inside the checkout it packages.
+# Tracks a tagged release — bump pkgver (and tag the release `v$pkgver`
+# upstream) rather than pointing this at a branch.
+
+pkgname=terracotta-branding
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Brand assets and pacman guard for Terracotta Linux."
+arch=('any')
+url="https://github.com/Terracotta-Linux/terracotta-branding"
+license=('custom')
+source=("$pkgname-$pkgver::git+https://github.com/Terracotta-Linux/terracotta-branding.git#tag=v$pkgver")
+sha256sums=('SKIP')
+
+package() {
+	cd "$srcdir/$pkgname-$pkgver"
+
+	install -Dm644 logo/terracotta.svg "$pkgdir/usr/share/terracotta-branding/logo/terracotta.svg"
+	install -Dm644 logo/terracotta-mono.svg "$pkgdir/usr/share/terracotta-branding/logo/terracotta-mono.svg"
+	install -Dm644 logo/terracotta-badge.svg "$pkgdir/usr/share/terracotta-branding/logo/terracotta-badge.svg"
+	install -Dm644 brand/palette.md "$pkgdir/usr/share/terracotta-branding/brand/palette.md"
+	install -Dm644 brand/os-release "$pkgdir/usr/share/terracotta-branding/brand/os-release"
+	install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+
+	# Shadows the real pacman via PATH priority (/usr/local/bin comes before
+	# /usr/bin on Arch) so a live Terracotta system points people at kiln
+	# instead of letting pacman mutate an image-managed install.
+	install -Dm755 scripts/pacman "$pkgdir/usr/local/bin/pacman"
+}

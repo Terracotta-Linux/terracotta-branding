@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Terracotta is an immutable, image-based system: packages are managed by
+# rebuilding the image with kiln, not by running pacman directly on a live
+# system. This shadows the real pacman (installed to /usr/local/bin, which
+# precedes /usr/bin in PATH) to say so instead of silently doing the wrong
+# thing.
+set -euo pipefail
+
+REAL_PACMAN=/usr/bin/pacman
+
+override=0
+args=()
+for arg in "$@"; do
+	if [[ "$arg" == "--override-and-continue" ]]; then
+		override=1
+	else
+		args+=("$arg")
+	fi
+done
+
+if (( ! override )); then
+	cat >&2 <<'EOF'
+This is a Terracotta system: packages are managed by rebuilding the image
+with kiln, not by running pacman directly.
+
+  https://github.com/Terracotta-Linux/kiln
+
+To run pacman anyway, pass --override-and-continue.
+EOF
+	exit 1
+fi
+
+exec "$REAL_PACMAN" "${args[@]}"
