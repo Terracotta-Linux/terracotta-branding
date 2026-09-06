@@ -6,7 +6,7 @@
 # upstream) rather than pointing this at a branch.
 
 pkgname=terracotta-branding
-pkgver=0.1.2
+pkgver=0.1.3
 pkgrel=1
 pkgdesc="Brand assets and pacman guard for Terracotta Linux."
 arch=('any')
