@@ -59,8 +59,9 @@ package_terracotta-branding-plymouth() {
 	install -Dm644 plymouth/terracotta.plymouth "$pkgdir/usr/share/plymouth/themes/terracotta/terracotta.plymouth"
 	install -Dm644 plymouth/terracotta.script "$pkgdir/usr/share/plymouth/themes/terracotta/terracotta.script"
 	install -Dm644 plymouth/logo.png "$pkgdir/usr/share/plymouth/themes/terracotta/logo.png"
-	install -Dm644 plymouth/progress-track.png "$pkgdir/usr/share/plymouth/themes/terracotta/progress-track.png"
-	install -Dm644 plymouth/progress-fill.png "$pkgdir/usr/share/plymouth/themes/terracotta/progress-fill.png"
+	# The spinner is one static ring plus a pre-rendered arc frame per step,
+	# so install the whole set rather than naming each frame here.
+	install -Dm644 -t "$pkgdir/usr/share/plymouth/themes/terracotta/" plymouth/spinner-*.png
 }
 
 package_terracotta-branding-wallpapers() {

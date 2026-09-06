@@ -51,15 +51,16 @@ those in once the project has a real one.
 ## Plymouth theme
 
 `plymouth/` — a minimal `script`-module Plymouth theme named `terracotta`: the mono logo
-centered on the palette's dark-context `bg` ("kiln interior at night"), with a plain
-progress bar filling in dark-context `terracotta` as boot proceeds. No throbber or
-frame-sequence animation, and no dependency beyond what the stock `script` splash module
-already provides.
+centered on the palette's dark-context `bg` ("kiln interior at night"), with a spinner
+below it — a static ring in `surface-border` and an arc in dark-context `terracotta`
+sweeping clockwise, roughly one revolution every two seconds. It needs nothing beyond what
+the stock `script` splash module already provides.
 
-`plymouth/generate.sh` derives `logo.png` and the two progress-bar color swatches from
-`logo/terracotta-mono.svg` and `brand/palette.md` — run it and commit the results after
-touching either source. Requires `rsvg-convert` and ImageMagick; not part of the package
-build itself.
+`plymouth/generate.sh` derives `logo.png`, `spinner-track.png` and the 36 `spinner-NNNN.png`
+arc frames from `logo/terracotta-mono.svg` and `brand/palette.md` — run it and commit the
+results after touching either source. Requires `rsvg-convert`; not part of the package build
+itself. The frames are pre-rendered rather than rotated at runtime with the `script` module's
+`Image.Rotate`, whose nearest-neighbour sampling visibly chews the arc's antialiased edge.
 
 ## Wallpapers
 
