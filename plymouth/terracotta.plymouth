@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Terracotta
+Description=Terracotta Linux boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/terracotta
+ScriptFile=/usr/share/plymouth/themes/terracotta/terracotta.script

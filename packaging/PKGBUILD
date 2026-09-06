@@ -4,20 +4,29 @@
 # rather than assuming it is sitting inside the checkout it packages.
 # Tracks a tagged release — bump pkgver (and tag the release `v$pkgver`
 # upstream) rather than pointing this at a branch.
+#
+# Split package: one source tree, three installable packages
+# (terracotta-branding, terracotta-branding-plymouth,
+# terracotta-branding-wallpapers). They share a single version because
+# the plymouth theme and wallpapers are just other renderings of the
+# same logo/palette source this repo already versions as one unit —
+# there's no case here where one of them needs a release the others
+# don't.
 
-pkgname=terracotta-branding
+pkgbase=terracotta-branding
+pkgname=('terracotta-branding' 'terracotta-branding-plymouth' 'terracotta-branding-wallpapers')
 pkgver=0.1.3
 pkgrel=1
-pkgdesc="Brand assets and pacman guard for Terracotta Linux."
 arch=('any')
 url="https://github.com/Terracotta-Linux/terracotta-branding"
 license=('custom')
-source=("$pkgname-$pkgver::git+https://github.com/Terracotta-Linux/terracotta-branding.git#tag=v$pkgver")
+source=("$pkgbase-$pkgver::git+https://github.com/Terracotta-Linux/terracotta-branding.git#tag=v$pkgver")
 sha256sums=('SKIP')
-install=terracotta-branding.install
 
-package() {
-	cd "$srcdir/$pkgname-$pkgver"
+package_terracotta-branding() {
+	pkgdesc="Brand assets and pacman guard for Terracotta Linux."
+	install=terracotta-branding.install
+	cd "$srcdir/$pkgbase-$pkgver"
 
 	install -Dm644 logo/terracotta.svg "$pkgdir/usr/share/terracotta-branding/logo/terracotta.svg"
 	install -Dm644 logo/terracotta-mono.svg "$pkgdir/usr/share/terracotta-branding/logo/terracotta-mono.svg"
@@ -33,10 +42,31 @@ package() {
 	# copies this over /usr/lib/os-release, since pacman can't let this
 	# package own that path directly (it's owned by `filesystem`).
 	install -Dm644 brand/os-release "$pkgdir/usr/share/terracotta-branding/brand/os-release"
-	install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+	install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgbase/README.md"
 
 	# Shadows the real pacman via PATH priority (/usr/local/bin comes before
 	# /usr/bin on Arch) so a live Terracotta system points people at kiln
 	# instead of letting pacman mutate an image-managed install.
 	install -Dm755 scripts/pacman "$pkgdir/usr/local/bin/pacman"
+}
+
+package_terracotta-branding-plymouth() {
+	pkgdesc="Terracotta Linux Plymouth boot splash theme."
+	depends=('plymouth')
+	install=terracotta-branding-plymouth.install
+	cd "$srcdir/$pkgbase-$pkgver"
+
+	install -Dm644 plymouth/terracotta.plymouth "$pkgdir/usr/share/plymouth/themes/terracotta/terracotta.plymouth"
+	install -Dm644 plymouth/terracotta.script "$pkgdir/usr/share/plymouth/themes/terracotta/terracotta.script"
+	install -Dm644 plymouth/logo.png "$pkgdir/usr/share/plymouth/themes/terracotta/logo.png"
+	install -Dm644 plymouth/progress-track.png "$pkgdir/usr/share/plymouth/themes/terracotta/progress-track.png"
+	install -Dm644 plymouth/progress-fill.png "$pkgdir/usr/share/plymouth/themes/terracotta/progress-fill.png"
+}
+
+package_terracotta-branding-wallpapers() {
+	pkgdesc="Default desktop wallpapers for Terracotta Linux."
+	cd "$srcdir/$pkgbase-$pkgver"
+
+	install -Dm644 wallpaper/terracotta-default-3840x2160.png "$pkgdir/usr/share/backgrounds/terracotta/terracotta-default-3840x2160.png"
+	install -Dm644 wallpaper/terracotta-default-1920x1080.png "$pkgdir/usr/share/backgrounds/terracotta/terracotta-default-1920x1080.png"
 }

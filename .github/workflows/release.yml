@@ -33,25 +33,30 @@ jobs:
         run: |
           su builder -c "cd '$GITHUB_WORKSPACE/packaging' && makepkg --syncdeps --noconfirm --skippgpcheck --nocheck"
 
-      - name: Rename package for stable release URL
+      - name: Rename packages for stable release URLs
         id: pkg
         run: |
           cd packaging
-          built=$(ls -- *.pkg.tar.zst | head -n1)
-          arch=$(. ./PKGBUILD; echo "${arch[0]}")
-          pkgfile="terracotta-branding-$arch.pkg.tar.zst"
-          mv -- "$built" "$pkgfile"
-          echo "pkgfile=$pkgfile" >> "$GITHUB_OUTPUT"
+          source ./PKGBUILD
+          arch="${arch[0]}"
 
-      - name: Compute checksum
-        run: |
-          cd packaging
-          sha256sum "${{ steps.pkg.outputs.pkgfile }}" > "${{ steps.pkg.outputs.pkgfile }}.sha256"
+          files=""
+          for name in "${pkgname[@]}"; do
+            built="$name-$pkgver-$pkgrel-$arch.pkg.tar.zst"
+            pkgfile="$name-$arch.pkg.tar.zst"
+            mv -- "$built" "$pkgfile"
+            sha256sum "$pkgfile" > "$pkgfile.sha256"
+            files="$files"$'\n'"packaging/$pkgfile"$'\n'"packaging/$pkgfile.sha256"
+          done
+
+          {
+            echo "files<<PKGEOF"
+            echo "$files"
+            echo "PKGEOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Upload to GitHub release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: |
-            packaging/${{ steps.pkg.outputs.pkgfile }}
-            packaging/${{ steps.pkg.outputs.pkgfile }}.sha256
+          files: ${{ steps.pkg.outputs.files }}

@@ -1,0 +1,17 @@
+post_install() {
+	# Regenerates the initramfs plymouth cache with this theme set as
+	# default. Terracotta images are built by kiln from a fixed package
+	# set rather than installed onto a pre-existing personalized system,
+	# so making this the default here (rather than leaving it inert until
+	# someone runs plymouth-set-default-theme by hand) is the right
+	# default for how this package is actually deployed.
+	plymouth-set-default-theme -R terracotta 2>/dev/null || true
+}
+
+post_upgrade() {
+	post_install
+}
+
+post_remove() {
+	plymouth-set-default-theme -R text 2>/dev/null || true
+}

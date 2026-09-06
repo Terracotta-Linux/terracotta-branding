@@ -48,10 +48,47 @@ not the cream-and-terracotta combination every generic AI-branded page reaches f
 the palette doc), `LOGO`. `HOME_URL` and friends are left unset rather than guessed; fill
 those in once the project has a real one.
 
+## Plymouth theme
+
+`plymouth/` — a minimal `script`-module Plymouth theme named `terracotta`: the mono logo
+centered on the palette's dark-context `bg` ("kiln interior at night"), with a plain
+progress bar filling in dark-context `terracotta` as boot proceeds. No throbber or
+frame-sequence animation, and no dependency beyond what the stock `script` splash module
+already provides.
+
+`plymouth/generate.sh` derives `logo.png` and the two progress-bar color swatches from
+`logo/terracotta-mono.svg` and `brand/palette.md` — run it and commit the results after
+touching either source. Requires `rsvg-convert` and ImageMagick; not part of the package
+build itself.
+
+## Wallpapers
+
+`wallpaper/` — default desktop wallpapers at 3840×2160 and 1920×1080, generated from
+`logo/terracotta.svg` centered on the palette's dark-context `bg`.
+
+`wallpaper/generate.sh` regenerates them the same way `plymouth/generate.sh` does — run it
+and commit the results after touching `logo/terracotta.svg` or `brand/palette.md`.
+
+## Packages
+
+`packaging/PKGBUILD` is a split package (one source tree, `pkgbase=terracotta-branding`)
+producing three packages that version and release together:
+
+| Package | Contents |
+|---|---|
+| `terracotta-branding` | `os-release`, logos, the icon-theme badge, the `pacman` guard script. |
+| `terracotta-branding-plymouth` | The `terracotta` Plymouth theme, set as default on install. |
+| `terracotta-branding-wallpapers` | The default wallpapers. |
+
+They share one version because the Plymouth theme and wallpapers are just other renderings
+of the same logo/palette source this repo already versions as a unit — there's no case here
+where one needs a release the others don't. Split them into separate `PKGBUILD`s later if
+that stops being true.
+
 ## What's deliberately not here
 
-No wordmark/lockup file, no wallpaper, no full style guide, no icon set beyond the three
-logo variants — this folder is the seed set for a distro that doesn't exist as a shipped
+No wordmark/lockup file, no full style guide, no icon set beyond the three logo variants,
+no GRUB theme — this folder is the seed set for a distro that doesn't exist as a shipped
 image yet. Add to it as `terracotta-installer` and the eventual image actually need more
-(a Plymouth theme, a GRUB background, a wallpaper, a `.desktop` icon set), rather than
-designing those blind now.
+(a GRUB background, a `.desktop` icon set), rather than designing those blind now. ISO-boot
+artifacts (GRUB/syslinux menus, the ISO volume label) belong in `terracotta-iso`, not here.
