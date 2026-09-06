@@ -5,6 +5,8 @@ post_install() {
 	# the reference copy is already in place under /usr/share.
 	install -Dm644 /usr/share/terracotta-branding/brand/os-release /usr/lib/os-release
 	ln -sf ../usr/lib/os-release /etc/os-release
+
+	gtk-update-icon-cache -q /usr/share/icons/hicolor 2>/dev/null || true
 }
 
 post_upgrade() {
@@ -14,4 +16,6 @@ post_upgrade() {
 post_remove() {
 	echo "Note: /etc/os-release and /usr/lib/os-release were left in place." \
 		"Restore them from the filesystem package if needed."
+
+	gtk-update-icon-cache -q /usr/share/icons/hicolor 2>/dev/null || true
 }

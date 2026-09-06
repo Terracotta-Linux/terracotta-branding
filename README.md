@@ -22,9 +22,17 @@ Three variants:
 
 | File | For |
 |---|---|
-| `terracotta.svg` | Standard flat-color mark. Default choice. |
+| `terracotta.svg` | Standard flat-color mark, transparent background. |
 | `terracotta-mono.svg` | Single-color (`currentColor`) — GRUB theme, Plymouth boot splash, man pages, anywhere that can't render the full palette. |
-| `terracotta-badge.svg` | Mark on a rounded terracotta square. App icon, favicon, `.desktop` entries — anything that needs a filled background rather than transparency. |
+| `terracotta-badge.svg` | Mark on a rounded terracotta square. Default choice — app icon, favicon, `.desktop` entries, and the system logo installed for freedesktop icon-theme lookups. |
+
+## System logo
+
+`os-release`'s `LOGO=terracotta-logo` field is a freedesktop icon-theme name, not a path —
+tools like KInfoCenter's "About This System" resolve it through the icon theme rather than
+reading a file directly. The package installs `terracotta-badge.svg` as that icon, at
+`/usr/share/icons/hicolor/scalable/apps/terracotta-logo.svg`, so those lookups resolve to
+the badge instead of falling back to a blank icon.
 
 ## Palette
 

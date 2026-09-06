@@ -22,6 +22,12 @@ package() {
 	install -Dm644 logo/terracotta.svg "$pkgdir/usr/share/terracotta-branding/logo/terracotta.svg"
 	install -Dm644 logo/terracotta-mono.svg "$pkgdir/usr/share/terracotta-branding/logo/terracotta-mono.svg"
 	install -Dm644 logo/terracotta-badge.svg "$pkgdir/usr/share/terracotta-branding/logo/terracotta-badge.svg"
+
+	# Installed under the icon name os-release's LOGO= field points at, so
+	# freedesktop icon-theme lookups (e.g. KInfoCenter's "About This System")
+	# resolve to the badge instead of falling back to a blank icon.
+	install -Dm644 logo/terracotta-badge.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/terracotta-logo.svg"
+
 	install -Dm644 brand/palette.md "$pkgdir/usr/share/terracotta-branding/brand/palette.md"
 	# Reference copy only — terracotta-branding.install's post_install()
 	# copies this over /usr/lib/os-release, since pacman can't let this
