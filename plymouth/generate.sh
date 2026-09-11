@@ -28,13 +28,18 @@ SPINNER_STROKE=5
 SPINNER_ARC=0.28   # fraction of the circumference the arc covers
 SPINNER_FRAMES=36  # one frame per 10° step; terracotta.script hardcodes the count
 
-# Password prompt: one dot per typed character. A pre-rendered PNG rather
-# than the script module's Image.Text, which needs a font — dracut's
+# Password prompt: a static field outline (so it's visible the moment
+# Plymouth asks, not just once typing starts) with one dot per typed
+# character filling in left-to-right inside it. Both are pre-rendered PNGs
+# rather than the script module's Image.Text, which needs a font — dracut's
 # plymouth-populate-initrd only bundles one if fc-match finds one installed,
 # and @kiln/profiles/minimal ships none, silently leaving the password
 # prompt invisible. Image() has no such dependency.
 DOT_SIZE=16
 DOT_RADIUS=5
+BOX_CAPACITY=16 # dots the box is sized to hold; terracotta.script hardcodes BOX_PAD to match
+BOX_PAD=14
+BOX_CORNER=10
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
@@ -87,3 +92,18 @@ cat > "$tmp_dir/dot.svg" <<-SVG
 SVG
 rsvg-convert -w "$DOT_SIZE" -h "$DOT_SIZE" "$tmp_dir/dot.svg" -o "$OUT_DIR/password-dot.png"
 echo "wrote $OUT_DIR/password-dot.png"
+
+# Box width mirrors terracotta.script's dot_gap calculation (dot width * 1.8).
+box_dot_gap=$(awk "BEGIN { print $DOT_SIZE * 1.8 }")
+box_w=$(awk "BEGIN { print int($BOX_CAPACITY * $box_dot_gap + 2 * $BOX_PAD) }")
+box_h=$(awk "BEGIN { print int($DOT_SIZE + 2 * $BOX_PAD) }")
+box_inner_w=$(awk "BEGIN { print $box_w - 3 }")
+box_inner_h=$(awk "BEGIN { print $box_h - 3 }")
+cat > "$tmp_dir/box.svg" <<-SVG
+<svg xmlns="http://www.w3.org/2000/svg" width="$box_w" height="$box_h" viewBox="0 0 $box_w $box_h">
+  <rect x="1.5" y="1.5" width="$box_inner_w" height="$box_inner_h" rx="$BOX_CORNER" ry="$BOX_CORNER"
+        fill="none" stroke="$SURFACE_BORDER" stroke-width="1.5"/>
+</svg>
+SVG
+rsvg-convert -w "$box_w" -h "$box_h" "$tmp_dir/box.svg" -o "$OUT_DIR/password-box.png"
+echo "wrote $OUT_DIR/password-box.png"

@@ -72,23 +72,39 @@ fun refresh_callback()
 
 Plymouth.SetRefreshFunction(refresh_callback);
 
-// Password prompt (LUKS unlock, etc): one dot per typed character, no
-// dialog chrome — same "logo + one line" minimalism as the rest of the
-// theme. Deliberately not Image.Text: it needs a font, and dracut only
+// Password prompt (LUKS unlock, etc): a static field outline, visible the
+// moment Plymouth asks — not just once typing starts, which otherwise
+// looks identical to the spinner just still loading — with one dot per
+// typed character filling in left-to-right inside it. No dialog chrome
+// beyond that outline, same "logo + one line" minimalism as the rest of
+// the theme. Deliberately not Image.Text: it needs a font, and dracut only
 // bundles one into the initramfs if fc-match finds one installed —
 // @kiln/profiles/minimal ships none, which left this prompt silently
 // invisible (logo and spinner still rendered fine, being plain PNGs with
-// no font dependency). password-dot.png sidesteps that the same way the
-// spinner frames sidestep Image.Rotate's nearest-neighbour artifacts.
+// no font dependency). password-dot.png/password-box.png sidestep that
+// the same way the spinner frames sidestep Image.Rotate's
+// nearest-neighbour artifacts.
 password.dot_image = Image("password-dot.png");
 password.dot_gap = password.dot_image.GetWidth() * 1.8;
-password.y = spinner.center_y + spinner.track_image.GetHeight() / 2 + screen_h * 0.04;
+password.box_image = Image("password-box.png");
+password.box_pad = 14; // must match BOX_PAD in generate.sh
+
+password.box_x = screen_w / 2 - password.box_image.GetWidth() / 2;
+password.box_y = spinner.center_y + spinner.track_image.GetHeight() / 2 + screen_h * 0.04;
+password.row_x = password.box_x + password.box_pad;
+password.row_y = password.box_y + (password.box_image.GetHeight() - password.dot_image.GetHeight()) / 2;
+
+password.box_sprite = Sprite(password.box_image);
+password.box_sprite.SetX(password.box_x);
+password.box_sprite.SetY(password.box_y);
+password.box_sprite.SetZ(3);
+password.box_sprite.SetOpacity(0);
+
 password.dot_count = 0;
 
 fun display_password_callback(prompt, bullets)
 {
-    local.row_width = bullets * password.dot_gap;
-    local.start_x = screen_w / 2 - local.row_width / 2 + password.dot_gap / 2;
+    password.box_sprite.SetOpacity(1);
 
     local.max = bullets;
     if (password.dot_count > local.max)
@@ -97,16 +113,15 @@ fun display_password_callback(prompt, bullets)
     for (local.i = 0; local.i < local.max; local.i++)
     {
         if (!password.dots[local.i])
+        {
             password.dots[local.i] = Sprite(password.dot_image);
+            password.dots[local.i].SetX(password.row_x + local.i * password.dot_gap);
+            password.dots[local.i].SetY(password.row_y);
+            password.dots[local.i].SetZ(4);
+        }
 
         if (local.i < bullets)
-        {
-            password.dots[local.i].SetX(local.start_x + local.i * password.dot_gap
-                                        - password.dot_image.GetWidth() / 2);
-            password.dots[local.i].SetY(password.y);
-            password.dots[local.i].SetZ(3);
             password.dots[local.i].SetOpacity(1);
-        }
         else
             password.dots[local.i].SetOpacity(0);
     }
@@ -115,3 +130,15 @@ fun display_password_callback(prompt, bullets)
 }
 
 Plymouth.SetDisplayPasswordFunction(display_password_callback);
+
+// Fires once the prompt is answered (or cancelled), so the field doesn't
+// linger on screen after boot moves past it.
+fun display_normal_callback()
+{
+    password.box_sprite.SetOpacity(0);
+    for (local.i = 0; local.i < password.dot_count; local.i++)
+        password.dots[local.i].SetOpacity(0);
+    password.dot_count = 0;
+}
+
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
