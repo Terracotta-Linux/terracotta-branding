@@ -104,6 +104,11 @@ password.dot_count = 0;
 
 fun display_password_callback(prompt, bullets)
 {
+    // Boot is paused waiting on input here, not actually progressing, so
+    // hide the spinner rather than let it keep spinning misleadingly.
+    spinner.track_sprite.SetOpacity(0);
+    spinner.sprite.SetOpacity(0);
+
     password.box_sprite.SetOpacity(1);
 
     local.max = bullets;
@@ -135,6 +140,9 @@ Plymouth.SetDisplayPasswordFunction(display_password_callback);
 // linger on screen after boot moves past it.
 fun display_normal_callback()
 {
+    spinner.track_sprite.SetOpacity(1);
+    spinner.sprite.SetOpacity(1);
+
     password.box_sprite.SetOpacity(0);
     for (local.i = 0; local.i < password.dot_count; local.i++)
         password.dots[local.i].SetOpacity(0);
