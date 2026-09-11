@@ -11,7 +11,7 @@ cd "$(dirname "$0")/.."
 # palette.md, dark-context columns (the boot background is dark regardless
 # of the installed system's light/dark theme preference):
 SAND="#E8D5C0"           # `sand` — foreground on dark, used for the mono logo
-TERRACOTTA="#D9673C"     # `terracotta` — accent, used for the spinner arc
+TERRACOTTA="#D9673C"     # `terracotta` — accent, used for the spinner arc and password dots
 SURFACE_BORDER="#3A2A1E" # `surface-border` — used for the spinner ring
 
 MONO_SVG="logo/terracotta-mono.svg"
@@ -27,6 +27,14 @@ SPINNER_RADIUS=33
 SPINNER_STROKE=5
 SPINNER_ARC=0.28   # fraction of the circumference the arc covers
 SPINNER_FRAMES=36  # one frame per 10° step; terracotta.script hardcodes the count
+
+# Password prompt: one dot per typed character. A pre-rendered PNG rather
+# than the script module's Image.Text, which needs a font — dracut's
+# plymouth-populate-initrd only bundles one if fc-match finds one installed,
+# and @kiln/profiles/minimal ships none, silently leaving the password
+# prompt invisible. Image() has no such dependency.
+DOT_SIZE=16
+DOT_RADIUS=5
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
@@ -70,3 +78,12 @@ for ((frame = 0; frame < SPINNER_FRAMES; frame++)); do
 	render_ring "$TERRACOTTA" "stroke-dasharray=\"$arc_len $gap_len\"" "$angle" "$out"
 done
 echo "wrote $OUT_DIR/spinner-0000.png .. $(printf 'spinner-%04d.png' $((SPINNER_FRAMES - 1)))"
+
+dot_center=$(awk "BEGIN { print $DOT_SIZE / 2 }")
+cat > "$tmp_dir/dot.svg" <<-SVG
+<svg xmlns="http://www.w3.org/2000/svg" width="$DOT_SIZE" height="$DOT_SIZE" viewBox="0 0 $DOT_SIZE $DOT_SIZE">
+  <circle cx="$dot_center" cy="$dot_center" r="$DOT_RADIUS" fill="$TERRACOTTA"/>
+</svg>
+SVG
+rsvg-convert -w "$DOT_SIZE" -h "$DOT_SIZE" "$tmp_dir/dot.svg" -o "$OUT_DIR/password-dot.png"
+echo "wrote $OUT_DIR/password-dot.png"

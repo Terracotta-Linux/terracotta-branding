@@ -72,24 +72,46 @@ fun refresh_callback()
 
 Plymouth.SetRefreshFunction(refresh_callback);
 
-// Password prompt (LUKS unlock, etc): plain text, no dialog chrome —
-// same "logo + one line" minimalism as the rest of the theme.
+// Password prompt (LUKS unlock, etc): one dot per typed character, no
+// dialog chrome — same "logo + one line" minimalism as the rest of the
+// theme. Deliberately not Image.Text: it needs a font, and dracut only
+// bundles one into the initramfs if fc-match finds one installed —
+// @kiln/profiles/minimal ships none, which left this prompt silently
+// invisible (logo and spinner still rendered fine, being plain PNGs with
+// no font dependency). password-dot.png sidesteps that the same way the
+// spinner frames sidestep Image.Rotate's nearest-neighbour artifacts.
+password.dot_image = Image("password-dot.png");
+password.dot_gap = password.dot_image.GetWidth() * 1.8;
+password.y = spinner.center_y + spinner.track_image.GetHeight() / 2 + screen_h * 0.04;
+password.dot_count = 0;
+
 fun display_password_callback(prompt, bullets)
 {
-    local.text = "";
-    for (local.i = 0; local.i < bullets; local.i++)
-        local.text += "*";
-    if (prompt)
-        local.text = prompt + " " + local.text;
+    local.row_width = bullets * password.dot_gap;
+    local.start_x = screen_w / 2 - local.row_width / 2 + password.dot_gap / 2;
 
-    password.image = Image.Text(local.text, 0.910, 0.835, 0.753);
-    if (!password.sprite)
-        password.sprite = Sprite();
-    password.sprite.SetImage(password.image);
-    password.sprite.SetX(screen_w / 2 - password.image.GetWidth() / 2);
-    password.sprite.SetY(spinner.center_y + spinner.track_image.GetHeight() / 2
-                         + screen_h * 0.04);
-    password.sprite.SetZ(3);
+    local.max = bullets;
+    if (password.dot_count > local.max)
+        local.max = password.dot_count;
+
+    for (local.i = 0; local.i < local.max; local.i++)
+    {
+        if (!password.dots[local.i])
+            password.dots[local.i] = Sprite(password.dot_image);
+
+        if (local.i < bullets)
+        {
+            password.dots[local.i].SetX(local.start_x + local.i * password.dot_gap
+                                        - password.dot_image.GetWidth() / 2);
+            password.dots[local.i].SetY(password.y);
+            password.dots[local.i].SetZ(3);
+            password.dots[local.i].SetOpacity(1);
+        }
+        else
+            password.dots[local.i].SetOpacity(0);
+    }
+
+    password.dot_count = bullets;
 }
 
 Plymouth.SetDisplayPasswordFunction(display_password_callback);
